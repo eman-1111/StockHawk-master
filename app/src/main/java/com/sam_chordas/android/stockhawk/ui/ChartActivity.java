@@ -1,61 +1,28 @@
 package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.db.chart.Tools;
+import com.db.chart.model.LineSet;
+import com.db.chart.view.AxisController;
+import com.db.chart.view.ChartView;
+import com.db.chart.view.LineChartView;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
-import com.sam_chordas.android.stockhawk.rest.Utils;
-import android.app.LoaderManager;
-import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Intent;
-import android.content.Loader;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.ActionBar;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.InputType;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.sam_chordas.android.stockhawk.R;
-import com.sam_chordas.android.stockhawk.data.QuoteColumns;
-import com.sam_chordas.android.stockhawk.data.QuoteProvider;
-import com.sam_chordas.android.stockhawk.rest.QuoteCursorAdapter;
-import com.sam_chordas.android.stockhawk.rest.RecyclerViewItemClickListener;
-import com.sam_chordas.android.stockhawk.rest.Utils;
-import com.sam_chordas.android.stockhawk.service.StockIntentService;
-import com.sam_chordas.android.stockhawk.service.StockTaskService;
-import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.PeriodicTask;
-import com.google.android.gms.gcm.Task;
-import com.melnykov.fab.FloatingActionButton;
-import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallback;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Eman on 9/26/2016.
@@ -68,43 +35,34 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
 
     private static final int CURSOR_LOADER_ID = 1;
-    private Context mContext;
-    private Cursor mCursor;
-    boolean isConnected;
-    public  final String SELECTED_STOCK = "selected_stock";
+
+    public final String SELECTED_STOCK = "selected_stock";
     String searchKey;
+    LineChartView lineChartView;
+    private LineSet mLineSet;
+    int maxRange, minRange;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mContext = this;
-        ConnectivityManager cm =
-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
         setContentView(R.layout.activity_line_graph);
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
+        mLineSet = new LineSet();
+        lineChartView = (LineChartView) findViewById(R.id.line_chart);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-
         if (bundle != null) {
-           // searchKey = intent.getStringExtra(SELECTED_STOCK);
-            searchKey =(String) bundle.get(SELECTED_STOCK);
-            Log.e(SELECTED_STOCK, searchKey +" :)");
+            searchKey = (String) bundle.get(SELECTED_STOCK);
+            Log.e(SELECTED_STOCK, searchKey + " :)");
         }
     }
-
 
     @Override
     public void onResume() {
         super.onResume();
-        //getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
-
 
 
     @Override
@@ -126,17 +84,15 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
         }
 
 
-
         return super.onOptionsItemSelected(item);
     }
 
 
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if(searchKey != null){
+        if (searchKey != null) {
             return new CursorLoader(this, QuoteProvider.Quotes.CONTENT_URI,
-                    new String[]{QuoteColumns.PERCENT_CHANGE, QuoteColumns.CHANGE},
+                    new String[]{QuoteColumns.BIDPRICE, QuoteColumns.CHANGE},
                     QuoteColumns.SYMBOL + " = ?",
                     new String[]{searchKey},
                     null);
@@ -149,12 +105,59 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mCursor = data;
         Log.e("Cursor", data.toString());
+        findRange(data);
+        initLineChart();
+
+        data.moveToFirst();
+
+        for (int i = 0; i < data.getCount(); i++) {
+            float value = Float.parseFloat(data.getString(data.getColumnIndex(QuoteColumns.BIDPRICE)));
+            mLineSet.addPoint(" " + i, value);
+            data.moveToNext();
+            Log.e("change", value + " ");
+        }
+        data.close();
+        mLineSet.setColor(getResources().getColor(R.color.colorGray))
+                .setDotsStrokeThickness(Tools.fromDpToPx(2))
+                .setDotsStrokeColor(getResources().getColor(R.color.colorLightBlue));
+        lineChartView.addData(mLineSet);
+        lineChartView.show();
+
+
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    private void initLineChart() {
+        Paint gridPaint = new Paint();
+        gridPaint.setColor(getResources().getColor(R.color.colorLightBlue));
+        gridPaint.setStyle(Paint.Style.STROKE);
+        gridPaint.setAntiAlias(true);
+        gridPaint.setStrokeWidth(Tools.fromDpToPx(1f));
+        lineChartView.setBorderSpacing(1)
+                .setAxisBorderValues(minRange -1 , maxRange +1 , 1)
+                .setXLabels(AxisController.LabelPosition.OUTSIDE)
+                .setYLabels(AxisController.LabelPosition.OUTSIDE)
+                .setLabelsColor(getResources().getColor(R.color.colorLightBlue))
+                .setXAxis(false)
+                .setYAxis(false)
+                .setBorderSpacing(Tools.fromDpToPx(2))
+                .setGrid(ChartView.GridType.HORIZONTAL, gridPaint);
+    }
+
+    public void findRange(Cursor mCursor) {
+        ArrayList<Float> mArrayList = new ArrayList<Float>();
+        for (mCursor.moveToFirst(); !mCursor.isAfterLast(); mCursor.moveToNext()) {
+            // The Cursor is now set to the right position
+            mArrayList.add(Float.parseFloat(mCursor.getString(mCursor.getColumnIndex(QuoteColumns.BIDPRICE))));
+        }
+        maxRange = Math.round(Collections.max(mArrayList));
+        minRange = Math.round(Collections.min(mArrayList));
+        Log.e("Range1", minRange + " " + maxRange);
 
     }
 

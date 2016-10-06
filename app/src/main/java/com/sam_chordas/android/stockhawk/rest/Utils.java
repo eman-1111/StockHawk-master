@@ -71,13 +71,19 @@ public class Utils {
             change = change.substring(0, change.length() - 1);
         }
         change = change.substring(1, change.length());
-        double round = (double) Math.round(Double.parseDouble(change) * 100) / 100;
-        change = String.format("%.2f", round);
-        StringBuffer changeBuffer = new StringBuffer(change);
-        changeBuffer.insert(0, weight);
-        changeBuffer.append(ampersand);
-        change = changeBuffer.toString();
-        return change;
+
+            try {
+                double round = (double) Math.round(Double.parseDouble(change) * 100) / 100;
+                change = String.format("%.2f", round);
+                StringBuffer changeBuffer = new StringBuffer(change);
+                changeBuffer.insert(0, weight);
+                changeBuffer.append(ampersand);
+                change = changeBuffer.toString();
+                return change;
+            }catch (Exception e){
+                Log.e("Exception", e.toString());
+
+            }return "";
     }
 
     public static boolean isStockThere(String JSON) {
