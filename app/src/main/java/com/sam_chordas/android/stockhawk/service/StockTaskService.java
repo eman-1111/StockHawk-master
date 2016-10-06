@@ -130,11 +130,8 @@ public class StockTaskService extends GcmTaskService{
               mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                       Utils.quoteJsonToContentVals(getResponse));
           }else{
-            Toast toast =
-                    Toast.makeText(StockTaskService.this, "The stock the you are search for is not Available",
-                            Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-            toast.show();
+            Log.e("error","The stock the you are search for is not Available");
+
           }
 
         }catch (RemoteException | OperationApplicationException e){

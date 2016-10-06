@@ -1,0 +1,13 @@
+<resources>
+  <string name="app_name">هوك للأسهم</string>
+
+  <string name="action_settings">إعدادات</string>
+  <string name="action_change_units"> تغيير الوحدات</string>
+  <string name="symbol_search">بحث عن سهم</string>
+  <string name="content_test">بحث عن سهم معين </string>
+  <string name="network_toast">هذا التطبيق يتطلب اتصال بالإنترنت</string>
+
+
+</resources>
+
+
