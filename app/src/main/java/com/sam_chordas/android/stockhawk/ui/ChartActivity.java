@@ -85,7 +85,6 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
             onBackPressed();
             finish();
             return true;
-
         }
 
 

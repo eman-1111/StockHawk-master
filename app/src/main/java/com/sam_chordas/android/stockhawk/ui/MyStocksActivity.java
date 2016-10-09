@@ -114,6 +114,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                         startActivity(intent);
                     }
                 }));
+
+
         recyclerView.setAdapter(mCursorAdapter);
 
 

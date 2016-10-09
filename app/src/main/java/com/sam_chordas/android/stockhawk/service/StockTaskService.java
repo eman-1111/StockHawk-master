@@ -35,6 +35,7 @@ public class StockTaskService extends GcmTaskService{
   private StringBuilder mStoredSymbols = new StringBuilder();
   private boolean isUpdate;
 
+
   public static final String PATH_URL = "https://query.yahooapis.com/v1/public/yql?q=";
 
   public StockTaskService(){}
