@@ -55,9 +55,8 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
     String bidBrice = cursor.getString(cursor.getColumnIndex(QuoteColumns.BIDPRICE));
     viewHolder.bidPrice.setText(bidBrice);
-    viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock_bid_price,bidBrice));
+    viewHolder.bidPrice.setContentDescription(mContext.getString(R.string.a11y_stock_bid_price,bidBrice));
 
-    viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock_bid_price,symbol));
     int sdk = Build.VERSION.SDK_INT;
     if (cursor.getInt(cursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
       if (sdk < Build.VERSION_CODES.JELLY_BEAN){

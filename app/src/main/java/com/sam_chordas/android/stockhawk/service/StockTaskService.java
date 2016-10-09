@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
+import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.rest.Utils;
@@ -38,6 +39,7 @@ public class StockTaskService extends GcmTaskService{
   private boolean isUpdate;
   public static final String ACTION_DATA_UPDATED =
           "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
+  public static final String PATH_URL = "https://query.yahooapis.com/v1/public/yql?q=";
 
   public StockTaskService(){}
 
@@ -62,7 +64,7 @@ public class StockTaskService extends GcmTaskService{
     StringBuilder urlStringBuilder = new StringBuilder();
     try{
       // Base URL for the Yahoo query
-      urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=");
+      urlStringBuilder.append(PATH_URL);
       urlStringBuilder.append(URLEncoder.encode("select * from yahoo.finance.quotes where symbol "
         + "in (", "UTF-8"));
     } catch (UnsupportedEncodingException e) {
@@ -86,7 +88,7 @@ public class StockTaskService extends GcmTaskService{
         initQueryCursor.moveToFirst();
         for (int i = 0; i < initQueryCursor.getCount(); i++){
           mStoredSymbols.append("\""+
-              initQueryCursor.getString(initQueryCursor.getColumnIndex("symbol"))+"\",");
+              initQueryCursor.getString(initQueryCursor.getColumnIndex(QuoteColumns.SYMBOL))+"\",");
           initQueryCursor.moveToNext();
         }
         mStoredSymbols.replace(mStoredSymbols.length() - 1, mStoredSymbols.length(), ")");
@@ -99,7 +101,7 @@ public class StockTaskService extends GcmTaskService{
     } else if (params.getTag().equals("add")){
       isUpdate = false;
       // get symbol from params.getExtra and build query
-      String stockInput = params.getExtras().getString("symbol");
+      String stockInput = params.getExtras().getString(QuoteColumns.SYMBOL);
       try {
         urlStringBuilder.append(URLEncoder.encode("\""+stockInput+"\")", "UTF-8"));
       } catch (UnsupportedEncodingException e){
@@ -134,7 +136,7 @@ public class StockTaskService extends GcmTaskService{
               mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                       Utils.quoteJsonToContentVals(getResponse));
           }else{
-            Log.e("error","The stock the you are search for is not Available");
+            Log.e(LOG_TAG, "This stock does not existent!");
 
           }
 

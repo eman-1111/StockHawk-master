@@ -9,12 +9,15 @@
   <string name="saved_stock">This stock is already saved!</string>
   <string name="non_existent_stock">This stock does not existent!</string>
   <string name="input_value">You need to input stock</string>
+  <string name="insert_value">Error applying batch insert</string>
 
   <string name="bid_price" translatable="false">1000.00</string>
   <string name="stock_symbol" translatable="false">GOOG</string>
   <string name="change" translatable="false">100%</string>
   <string name="input_hint" translatable="false">FB</string>
   <string name="input_prefill" translatable="false"></string>
+  <string name="cursor_error" translatable="false">Could not move Cursor to position: </string>
+  <string name="cursor_valid" translatable="false">This should only be called when Cursor is valid</string>
 
   <!-- A11y -->
   <string name="a11y_stock">Stock:  <xliff:g id="condition">%1$s</xliff:g></string>

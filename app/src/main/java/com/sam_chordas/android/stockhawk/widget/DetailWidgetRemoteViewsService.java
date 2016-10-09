@@ -89,10 +89,14 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService {
 
                 String symbol = data.getString(INDEX_SYMBOL);
                 views.setTextViewText(R.id.stock_symbol_widget, symbol);
+                views.setContentDescription(R.id.stock_symbol_widget,
+                        getBaseContext().getString(R.string.a11y_stock_symbol, symbol));
 
 
                 String bidBrice = data.getString(INDEX_BIDPRICE);
                 views.setTextViewText(R.id.bid_price_widget, bidBrice);
+                views.setContentDescription(R.id.bid_price_widget,
+                        getBaseContext().getString(R.string.a11y_stock_bid_price, bidBrice));
 
 
                 if (data.getInt(INDEX_ISUP) == 1) {
@@ -108,9 +112,13 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService {
                 if (Utils.showPercent) {
                     String value = data.getString(INDEX_PERCENT_CHANGE);
                     views.setTextViewText(R.id.change_widget, value);
+                    views.setContentDescription(R.id.change_widget,
+                            getBaseContext().getString(R.string.a11y_percent_change, value));
                 } else {
                     String value = data.getString(INDEX_CHANGE);
                     views.setTextViewText(R.id.change_widget, value);
+                    views.setContentDescription(R.id.change_widget,
+                            getBaseContext().getString(R.string.a11y_stock_change, value));
 
                 }
 
