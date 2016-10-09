@@ -81,6 +81,11 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }else if(id == R.id.home){
+            onBackPressed();
+            finish();
+            return true;
+
         }
 
 

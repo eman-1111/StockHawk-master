@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
@@ -18,6 +19,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -64,6 +66,10 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public  final String SELECTED_STOCK = "selected_stock";
     public  final String TAG = "tag";
 
+    public static final String ACTION_DATA_UPDATED =
+            "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
+    boolean isSaved = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,8 +86,15 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         // The intent service is for executing immediate pulls from the Yahoo API
         // GCMTaskService can only schedule tasks, they cannot execute immediately
         mServiceIntent = new Intent(this, StockIntentService.class);
-        if (savedInstanceState == null) {
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        View emptyView = findViewById(R.id.recyclerview_stock_empty);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+        if (savedInstanceState == null&& isSaved) {
+            Log.e("savedInstanceState", "= null");
             // Run the initialize task service so that some stocks appear upon an empty database
+            isSaved = false;
             mServiceIntent.putExtra(TAG, "init");
             if (isConnected) {
                 startService(mServiceIntent);
@@ -89,11 +102,6 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 networkToast();
             }
         }
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        View emptyView = findViewById(R.id.recyclerview_stock_empty);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
-
         mCursorAdapter = new QuoteCursorAdapter(this, null, emptyView);
         recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
                 new RecyclerViewItemClickListener.OnItemClickListener() {
@@ -187,16 +195,28 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                     .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                     .setRequiresCharging(false)
                     .build();
+            updateWidgets();
             // Schedule task with tag "periodic." This ensure that only the stocks present in the DB
             // are updated.
             GcmNetworkManager.getInstance(this).schedule(periodicTask);
         }
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putInt("notNull", 1);
+    }
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.e("onResume", "= null");
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
@@ -288,5 +308,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onLoaderReset(Loader<Cursor> loader) {
         mCursorAdapter.swapCursor(null);
     }
-
+    private void updateWidgets() {
+        Context context = mContext;
+        // Setting the package ensures that only components in our app will receive the broadcast
+        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+                .setPackage(context.getPackageName());
+        context.sendBroadcast(dataUpdatedIntent);
+    }
 }

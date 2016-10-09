@@ -8,13 +8,10 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.Gravity;
-import android.widget.Toast;
 
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
-import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.rest.Utils;
@@ -37,8 +34,7 @@ public class StockTaskService extends GcmTaskService{
   private Context mContext;
   private StringBuilder mStoredSymbols = new StringBuilder();
   private boolean isUpdate;
-  public static final String ACTION_DATA_UPDATED =
-          "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
+
   public static final String PATH_URL = "https://query.yahooapis.com/v1/public/yql?q=";
 
   public StockTaskService(){}
@@ -128,7 +124,7 @@ public class StockTaskService extends GcmTaskService{
             contentValues.put(QuoteColumns.ISCURRENT, 0);
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
                 null, null);
-            updateWidgets();
+
           }
 
          // see if the value that the user search for is Available
@@ -150,12 +146,6 @@ public class StockTaskService extends GcmTaskService{
 
     return result;
   }
-  private void updateWidgets() {
-    Context context = mContext;
-    // Setting the package ensures that only components in our app will receive the broadcast
-    Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
-            .setPackage(context.getPackageName());
-    context.sendBroadcast(dataUpdatedIntent);
-  }
+
 
 }
