@@ -18,8 +18,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -64,11 +62,14 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private Cursor mCursor;
     boolean isConnected;
     public  final String SELECTED_STOCK = "selected_stock";
+    public  final String TAG = "tag";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+
+
         ConnectivityManager cm =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -81,7 +82,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         mServiceIntent = new Intent(this, StockIntentService.class);
         if (savedInstanceState == null) {
             // Run the initialize task service so that some stocks appear upon an empty database
-            mServiceIntent.putExtra("tag", "init");
+            mServiceIntent.putExtra(TAG, "init");
             if (isConnected) {
                 startService(mServiceIntent);
             } else {
@@ -89,22 +90,20 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             }
         }
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        View emptyView = findViewById(R.id.recyclerview_stock_empty);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
-        mCursorAdapter = new QuoteCursorAdapter(this, null);
+        mCursorAdapter = new QuoteCursorAdapter(this, null, emptyView);
         recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
                 new RecyclerViewItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        //TODO open anther detail activity to show extra data:
                         mCursor.moveToPosition(position);
                         String symbol = mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL));
-                        Log.e("SymbolIntent m", symbol);
                         Intent intent = new Intent(MyStocksActivity.this, ChartActivity.class);
                         intent.putExtra(SELECTED_STOCK, symbol);
                         startActivity(intent);
-                        // do something on item click
                     }
                 }));
         recyclerView.setAdapter(mCursorAdapter);
@@ -130,7 +129,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                             new String[]{input.toString()}, null);
                                     if (c.getCount() != 0) {
                                         Toast toast =
-                                                Toast.makeText(MyStocksActivity.this, "This stock is already saved!",
+                                                Toast.makeText(MyStocksActivity.this, R.string.saved_stock,
                                                         Toast.LENGTH_LONG);
                                         toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                                         toast.show();
@@ -138,7 +137,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                     }
                                     if (input.equals("")) {
                                         Toast toast =
-                                                Toast.makeText(MyStocksActivity.this, "Input Value",
+                                                Toast.makeText(MyStocksActivity.this,  R.string.input_value,
                                                         Toast.LENGTH_LONG);
                                         toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                                         toast.show();
@@ -146,12 +145,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                     } else {
                                         // Add the stock to DB
                                         try {
-                                            mServiceIntent.putExtra("tag", "add");
+                                            mServiceIntent.putExtra(TAG, "add");
                                             mServiceIntent.putExtra("symbol", input.toString());
                                             startService(mServiceIntent);
                                         } catch (Exception e) {
                                             Toast toast =
-                                                    Toast.makeText(MyStocksActivity.this, "This stock does not existent!",
+                                                    Toast.makeText(MyStocksActivity.this,  R.string.non_existent_stock,
                                                             Toast.LENGTH_LONG);
                                             toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                                             toast.show();
@@ -202,7 +201,6 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     }
 
     public void networkToast() {
-        //TODO show clear textView to that tell the user we need internet
         Toast.makeText(mContext, getString(R.string.network_toast), Toast.LENGTH_SHORT).show();
     }
 
@@ -284,7 +282,6 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mCursorAdapter.swapCursor(data);
         mCursor = data;
-        Log.e("Cursor m", data.toString());
     }
 
     @Override

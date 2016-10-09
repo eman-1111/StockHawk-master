@@ -2,6 +2,7 @@ package com.sam_chordas.android.stockhawk.service;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -35,6 +36,8 @@ public class StockTaskService extends GcmTaskService{
   private Context mContext;
   private StringBuilder mStoredSymbols = new StringBuilder();
   private boolean isUpdate;
+  public static final String ACTION_DATA_UPDATED =
+          "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
 
   public StockTaskService(){}
 
@@ -123,6 +126,7 @@ public class StockTaskService extends GcmTaskService{
             contentValues.put(QuoteColumns.ISCURRENT, 0);
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
                 null, null);
+            updateWidgets();
           }
 
          // see if the value that the user search for is Available
@@ -143,6 +147,13 @@ public class StockTaskService extends GcmTaskService{
     }
 
     return result;
+  }
+  private void updateWidgets() {
+    Context context = mContext;
+    // Setting the package ensures that only components in our app will receive the broadcast
+    Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+            .setPackage(context.getPackageName());
+    context.sendBroadcast(dataUpdatedIntent);
   }
 
 }

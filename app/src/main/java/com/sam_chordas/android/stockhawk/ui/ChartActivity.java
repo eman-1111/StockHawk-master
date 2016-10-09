@@ -105,7 +105,6 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.e("Cursor", data.toString());
         findRange(data);
         initLineChart();
 
@@ -115,7 +114,6 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
             float value = Float.parseFloat(data.getString(data.getColumnIndex(QuoteColumns.BIDPRICE)));
             mLineSet.addPoint(" " + i, value);
             data.moveToNext();
-            Log.e("change", value + " ");
         }
         data.close();
         mLineSet.setColor(getResources().getColor(R.color.colorGray))
@@ -157,7 +155,6 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
         }
         maxRange = Math.round(Collections.max(mArrayList));
         minRange = Math.round(Collections.min(mArrayList));
-        Log.e("Range1", minRange + " " + maxRange);
 
     }
 

@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
   <string name="app_name">Stock Hawk</string>
 
   <string name="action_settings">Settings</string>
@@ -6,6 +6,9 @@
   <string name="symbol_search">Symbol Search</string>
   <string name="content_test">Search for a Stock Symbol</string>
   <string name="network_toast">Uh-oh! This app requires an internet connection</string>
+  <string name="saved_stock">This stock is already saved!</string>
+  <string name="non_existent_stock">This stock does not existent!</string>
+  <string name="input_value">You need to input stock</string>
 
   <string name="bid_price" translatable="false">1000.00</string>
   <string name="stock_symbol" translatable="false">GOOG</string>
@@ -13,6 +16,17 @@
   <string name="input_hint" translatable="false">FB</string>
   <string name="input_prefill" translatable="false"></string>
 
+  <!-- A11y -->
+  <string name="a11y_stock">Stock:  <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_stock_symbol">Stock symbol is:  <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_stock_bid_price">Stock bid price is:  <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_stock_change">Stock Change value:  <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_percent_change">Percent Change Value:  <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_recycler_view">Selected Stock <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_fab_button">Add new  Stock <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_stock_chart">show the change of stock overtime  <xliff:g id="condition">%1$s</xliff:g></string>
+
+  <string name="string_set_background_resource" translatable="false">setBackgroundResource</string>
 </resources>
 
 

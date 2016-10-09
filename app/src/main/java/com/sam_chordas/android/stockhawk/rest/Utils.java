@@ -36,7 +36,6 @@ public class Utils {
                     jsonObject = jsonObject.getJSONObject("results")
                             .getJSONObject("quote");
 
-                    //TODO
                     batchOperations.add(buildBatchOperation(jsonObject));
                     Log.e("batchOperations", jsonObject.toString());
                 } else {
@@ -56,7 +55,7 @@ public class Utils {
         return batchOperations;
     }
 
-    //TODO
+
     public static String truncateBidPrice(String bidPrice) {
 
         bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));

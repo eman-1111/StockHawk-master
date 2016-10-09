@@ -28,10 +28,11 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
   private static Context mContext;
   private static Typeface robotoLight;
-  private boolean isPercent;
-  public QuoteCursorAdapter(Context context, Cursor cursor){
+   private View mEmptyView;
+  public QuoteCursorAdapter(Context context, Cursor cursor, View emptyView){
     super(context, cursor);
     mContext = context;
+    mEmptyView = emptyView;
   }
 
   @Override
@@ -45,10 +46,20 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
   @Override
   public void onBindViewHolder(final ViewHolder viewHolder, final Cursor cursor){
-    viewHolder.symbol.setText(cursor.getString(cursor.getColumnIndex("symbol")));
-    viewHolder.bidPrice.setText(cursor.getString(cursor.getColumnIndex("bid_price")));
+
+    mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+
+    String symbol = cursor.getString(cursor.getColumnIndex(QuoteColumns.SYMBOL));
+    viewHolder.symbol.setText(symbol);
+    viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock_symbol,symbol));
+
+    String bidBrice = cursor.getString(cursor.getColumnIndex(QuoteColumns.BIDPRICE));
+    viewHolder.bidPrice.setText(bidBrice);
+    viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock_bid_price,bidBrice));
+
+    viewHolder.symbol.setContentDescription(mContext.getString(R.string.a11y_stock_bid_price,symbol));
     int sdk = Build.VERSION.SDK_INT;
-    if (cursor.getInt(cursor.getColumnIndex("is_up")) == 1){
+    if (cursor.getInt(cursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
       if (sdk < Build.VERSION_CODES.JELLY_BEAN){
         viewHolder.change.setBackgroundDrawable(
             mContext.getResources().getDrawable(R.drawable.percent_change_pill_green));
@@ -66,10 +77,15 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
       }
     }
     if (Utils.showPercent){
-      viewHolder.change.setText(cursor.getString(cursor.getColumnIndex("percent_change")));
+      String value = cursor.getString(cursor.getColumnIndex(QuoteColumns.PERCENT_CHANGE));
+      viewHolder.change.setText(value);
+      viewHolder.change.setContentDescription(mContext.getString(R.string.a11y_percent_change, value));
     } else{
-      viewHolder.change.setText(cursor.getString(cursor.getColumnIndex("change")));
+      String value = cursor.getString(cursor.getColumnIndex(QuoteColumns.CHANGE));
+      viewHolder.change.setText(value);
+      viewHolder.change.setContentDescription(mContext.getString(R.string.a11y_stock_change, value));
     }
+
   }
 
   @Override public void onItemDismiss(int position) {

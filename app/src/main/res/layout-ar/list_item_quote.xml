@@ -2,41 +2,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/stock_item_height"
+    android:layout_height="72dp"
     android:gravity="center_vertical"
     android:background="@color/white"
     android:orientation="horizontal"
-    android:paddingEnd="@dimen/activity_horizontal_margin"
-    android:paddingStart="@dimen/activity_horizontal_margin"
-    android:layout_margin="@dimen/layout_margin">
+    android:paddingEnd="16dp"
+    android:paddingStart="16dp"
+    android:paddingBottom="4dp"
+    android:paddingTop="4dp"
+    android:layout_margin="2dp">
   <TextView
       android:id="@+id/stock_symbol"
       style="@style/StockSymbolTextStyle"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:gravity="left|center_vertical"
-      android:paddingRight="@dimen/text_view_padding"
-      android:paddingEnd="@dimen/text_view_padding"
-      tools:text="@string/stock_symbol" />
+      tools:text="@string/stock_symbol"
+      />
   <LinearLayout
       android:layout_width="0dp"
       android:layout_height="wrap_content"
       android:layout_weight="1"
-      android:gravity="end">
+      android:gravity="end"
+      >
     <TextView
         android:id="@+id/bid_price"
         style="@style/BidPriceTextStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding ="@dimen/text_view_padding"
-        tools:text="@string/bid_price"/>
+        android:paddingStart="10sp"
+        android:background="@color/colorGray"
+        tools:text="@string/bid_price"
+
+        android:padding="4dp"/>
     <TextView
         android:id="@+id/change"
         android:background="@drawable/percent_change_pill"
         style="@style/PercentChangeTextStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding ="@dimen/text_view_padding"
-        tools:text="@string/change"/>
+        android:paddingEnd="3dp"
+        android:paddingStart="3dp"
+        tools:text="@string/change"
+        android:padding="4dp"/>
   </LinearLayout>
 </LinearLayout>

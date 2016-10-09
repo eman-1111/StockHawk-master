@@ -34,6 +34,24 @@
             android:name="com.sam_chordas.android.stockhawk.ui.ChartActivity"
             android:parentActivityName="com.sam_chordas.android.stockhawk.ui.MyStocksActivity"/>
 
+        <!-- Detail Widget -->
+        <receiver
+            android:name=".widget.DetailWidgetProvider"
+            android:label="@string/app_name"
+            android:enabled="@bool/widget_detail_enabled" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_detail" />
+        </receiver>
+        <service
+            android:name=".widget.DetailWidgetRemoteViewsService"
+            android:enabled="@bool/widget_detail_enabled"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
         <service android:name="com.sam_chordas.android.stockhawk.service.StockTaskService"
             android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
             android:exported="true">
