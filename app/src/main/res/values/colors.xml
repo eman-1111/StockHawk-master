@@ -8,6 +8,7 @@
 
 
   <color name="white">#FFF</color>
+  <color name="off_white"> #fafafa</color>
   <color name="colorGray">#7c7c7c</color>
   <color name="colorLightBlue">#1b6a91</color>
 </resources>

@@ -2,7 +2,6 @@ package com.sam_chordas.android.stockhawk.service;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -12,9 +11,11 @@ import android.util.Log;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
+import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.rest.Utils;
+import com.sam_chordas.android.stockhawk.touch_helper.Constants;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -36,7 +37,6 @@ public class StockTaskService extends GcmTaskService{
   private boolean isUpdate;
 
 
-  public static final String PATH_URL = "https://query.yahooapis.com/v1/public/yql?q=";
 
   public StockTaskService(){}
 
@@ -61,7 +61,8 @@ public class StockTaskService extends GcmTaskService{
     StringBuilder urlStringBuilder = new StringBuilder();
     try{
       // Base URL for the Yahoo query
-      urlStringBuilder.append(PATH_URL);
+      urlStringBuilder.append(Constants.PATH_URL);
+
       urlStringBuilder.append(URLEncoder.encode("select * from yahoo.finance.quotes where symbol "
         + "in (", "UTF-8"));
     } catch (UnsupportedEncodingException e) {
@@ -95,7 +96,7 @@ public class StockTaskService extends GcmTaskService{
           e.printStackTrace();
         }
       }
-    } else if (params.getTag().equals("add")){
+    } else if (params.getTag().equals(Constants.ADD)){
       isUpdate = false;
       // get symbol from params.getExtra and build query
       String stockInput = params.getExtras().getString(QuoteColumns.SYMBOL);
@@ -132,12 +133,11 @@ public class StockTaskService extends GcmTaskService{
           if(Utils.isStockThere(getResponse)) mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                       Utils.quoteJsonToContentVals(getResponse, mContext));
           else{
-            Log.e(LOG_TAG, "This stock does not existent!");
-
+            Log.e(LOG_TAG,  mContext.getString(R.string.non_existent_stock));
           }
 
         }catch (RemoteException | OperationApplicationException e){
-          Log.e(LOG_TAG, "Error applying batch insert", e);
+          Log.e(LOG_TAG,  mContext.getString(R.string.inset_error), e);
         }
       } catch (IOException e){
         e.printStackTrace();

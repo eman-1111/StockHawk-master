@@ -14,6 +14,7 @@ import android.widget.RemoteViews;
 
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.service.StockTaskService;
+import com.sam_chordas.android.stockhawk.touch_helper.Constants;
 import com.sam_chordas.android.stockhawk.ui.ChartActivity;
 import com.sam_chordas.android.stockhawk.ui.MyStocksActivity;
 
@@ -58,7 +59,7 @@ public class DetailWidgetProvider extends AppWidgetProvider {
     public void onReceive(@NonNull Context context, @NonNull Intent intent) {
         super.onReceive(context, intent);
 
-        if (MyStocksActivity.ACTION_DATA_UPDATED.equals(intent.getAction())) {
+        if (Constants.ACTION_DATA_UPDATED.equals(intent.getAction())) {
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(
                     new ComponentName(context, getClass()));

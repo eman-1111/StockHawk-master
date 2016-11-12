@@ -10,7 +10,6 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
@@ -19,7 +18,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,12 +37,14 @@ import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
 import com.melnykov.fab.FloatingActionButton;
+import com.sam_chordas.android.stockhawk.touch_helper.Constants;
 import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallback;
 
 
 import android.content.res.Configuration;
 
 import java.util.Locale;
+
 public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
@@ -62,21 +62,15 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private Context mContext;
     private Cursor mCursor;
     boolean isConnected;
-    public  final String SELECTED_STOCK = "selected_stock";
-    public  final String LOG_TAG = "MyStocksActivity";
 
-    public static final String ACTION_DATA_UPDATED =
-            "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
-    boolean isSaved = true;
+    public final String LOG_TAG = MyStocksActivity.class.getSimpleName();
 
-    public  final String TAG = "tag";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
 
-        Log.e(LOG_TAG,"onCreate");
         ConnectivityManager cm =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -92,11 +86,9 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         View emptyView = findViewById(R.id.recyclerview_stock_empty);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+
         if (savedInstanceState == null) {
-            Log.e("savedInstanceState", "= null");
-            // Run the initialize task service so that some stocks appear upon an empty database
-            isSaved = false;
-            mServiceIntent.putExtra(TAG, "init");
+            mServiceIntent.putExtra(Constants.TAG, "init");
             if (isConnected) {
                 startService(mServiceIntent);
             } else {
@@ -111,7 +103,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                         mCursor.moveToPosition(position);
                         String symbol = mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL));
                         Intent intent = new Intent(MyStocksActivity.this, ChartActivity.class);
-                        intent.putExtra(SELECTED_STOCK, symbol);
+                        intent.putExtra(Constants.SELECTED_STOCK, symbol);
                         startActivity(intent);
                     }
                 }));
@@ -185,24 +177,23 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                         }
                         if (input.length() <= 0) {
                             Toast toast =
-                                    Toast.makeText(MyStocksActivity.this,  R.string.input_value,
+                                    Toast.makeText(MyStocksActivity.this, R.string.input_value,
                                             Toast.LENGTH_LONG);
                             toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                             toast.show();
                             return;
                         } else {
                             // Add the stock to DB
-                            try {
-                                mServiceIntent.putExtra(TAG, "add");
-                                mServiceIntent.putExtra("symbol", input.toString());
-                                startService(mServiceIntent);
-                            } catch (Exception e) {
-                                Toast toast =
-                                        Toast.makeText(MyStocksActivity.this,  R.string.non_existent_stock,
-                                                Toast.LENGTH_LONG);
-                                toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-                                toast.show();
-                            }
+
+                            mServiceIntent.putExtra(Constants.TAG, Constants.ADD);
+                            mServiceIntent.putExtra(Constants.SYMBOL, input.toString());
+                            startService(mServiceIntent);
+                            Toast toast =
+                                    Toast.makeText(MyStocksActivity.this, R.string.non_existent_stock,
+                                            Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                            toast.show();
+
 
                         }
                     }
@@ -215,17 +206,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         super.onRestoreInstanceState(savedInstanceState);
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-        outState.putInt("notNull", 1);
-    }
 
     @Override
     public void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
-        Log.e(LOG_TAG,"onResume");
     }
 
     public void networkToast() {
@@ -262,36 +247,10 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             // this is for changing stock changes from percent value to dollar value
             Utils.showPercent = !Utils.showPercent;
             this.getContentResolver().notifyChange(QuoteProvider.Quotes.CONTENT_URI, null);
-            changeLanguageSettings();
 
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void changeLanguageSettings() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        Locale locale;
-        if (preferences.getString("lang", "en").equals("ar")) {
-            editor.putString("lang", "en");
-            editor.apply();
-            locale = new Locale("ar");
-            Toast.makeText(this, "Locale in ar !", Toast.LENGTH_LONG).show();
-        } else {
-            editor.putString("lang", "ar");
-            editor.apply();
-            Toast.makeText(this, "Locale in en !", Toast.LENGTH_LONG).show();
-            locale = Locale.ENGLISH;
-        }
-
-        Locale.setDefault(locale);
-        Configuration config = new Configuration();
-        config.locale = locale;
-
-        Resources resources = getResources();
-        resources.updateConfiguration(config, resources.getDisplayMetrics());
-        recreate();
     }
 
 
@@ -317,17 +276,40 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onLoaderReset(Loader<Cursor> loader) {
         mCursorAdapter.swapCursor(null);
     }
+
     private void updateWidgets() {
         Context context = mContext;
         // Setting the package ensures that only components in our app will receive the broadcast
-        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+        Intent dataUpdatedIntent = new Intent(Constants.ACTION_DATA_UPDATED)
                 .setPackage(context.getPackageName());
         context.sendBroadcast(dataUpdatedIntent);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.e(LOG_TAG,"onPause");
+
+    //test local
+    private void changeLanguageSettings() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        Locale locale;
+        if (preferences.getString("lang", "en").equals("ar")) {
+            editor.putString("lang", "en");
+            editor.apply();
+            locale = new Locale("ar");
+            Toast.makeText(this, "Locale in ar !", Toast.LENGTH_LONG).show();
+        } else {
+            editor.putString("lang", "ar");
+            editor.apply();
+            Toast.makeText(this, "Locale in en !", Toast.LENGTH_LONG).show();
+            locale = Locale.ENGLISH;
+        }
+
+        Locale.setDefault(locale);
+        Configuration config = new Configuration();
+        config.locale = locale;
+
+        Resources resources = getResources();
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
+        recreate();
     }
+
 }

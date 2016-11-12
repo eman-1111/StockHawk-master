@@ -26,10 +26,14 @@
   <string name="a11y_stock_change">Stock Change value:  <xliff:g id="condition">%1$s</xliff:g></string>
   <string name="a11y_percent_change">Percent Change Value:  <xliff:g id="condition">%1$s</xliff:g></string>
   <string name="a11y_recycler_view">Selected Stock <xliff:g id="condition">%1$s</xliff:g></string>
-  <string name="a11y_fab_button">Add new  Stock <xliff:g id="condition">%1$s</xliff:g></string>
-  <string name="a11y_stock_chart">show the change of stock overtime  <xliff:g id="condition">%1$s</xliff:g></string>
+  <string name="a11y_fab_button">Add new  Stock </string>
+  <string name="a11y_stock_chart">show the change of stock over time </string>
 
   <string name="string_set_background_resource" translatable="false">setBackgroundResource</string>
+
+  <string name="inset_error"  translatable="false">Error applying batch insert </string>
+
+
 </resources>
 
 

@@ -21,6 +21,7 @@ import com.db.chart.view.LineChartView;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.touch_helper.Constants;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,8 +34,7 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     private static final int CURSOR_LOADER_ID = 1;
     private Cursor mCursor;
-    public final String SELECTED_STOCK = "selected_stock";
-    public final String LOG_TAG = "ChartActivity";
+    public final String LOG_TAG = ChartActivity.class.getSimpleName();
     String searchKey;
     LineChartView lineChartView;
     private LineSet mLineSet;
@@ -44,16 +44,13 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_line_graph);
-        Log.e(LOG_TAG, "onCreate");
         mLineSet = new LineSet();
         lineChartView = (LineChartView) findViewById(R.id.line_chart);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        Log.e(SELECTED_STOCK + "start", searchKey + " :)");
         if (bundle != null) {
-            searchKey = (String) bundle.get(SELECTED_STOCK);
-            Log.e(SELECTED_STOCK + "1", searchKey + " :)");
+            searchKey = (String) bundle.get(Constants.SELECTED_STOCK);
         }
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
     }
@@ -62,15 +59,10 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
     @Override
     public void onResume() {
         super.onResume();
-        Log.e(LOG_TAG, "onResume");
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.e(LOG_TAG, "onPause");
-    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -102,9 +94,7 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.e(SELECTED_STOCK + "loader1", searchKey + " :)");
         if (searchKey != null) {
-            Log.e(SELECTED_STOCK + "loader2", searchKey + " :)");
             return new CursorLoader(this, QuoteProvider.Quotes.CONTENT_URI,
                     new String[]{QuoteColumns.BIDPRICE, QuoteColumns.CHANGE},
                     QuoteColumns.SYMBOL + " = ?",
@@ -119,7 +109,6 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.e(SELECTED_STOCK + "loader3", searchKey + " :)");
         if (data != null) {
             mCursor = data;
             findRange(mCursor);
