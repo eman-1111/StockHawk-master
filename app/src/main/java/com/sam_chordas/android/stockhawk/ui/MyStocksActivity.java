@@ -45,7 +45,6 @@ import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallb
 import android.content.res.Configuration;
 
 import java.util.Locale;
-
 public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
@@ -64,18 +63,20 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private Cursor mCursor;
     boolean isConnected;
     public  final String SELECTED_STOCK = "selected_stock";
-    public  final String TAG = "tag";
+    public  final String LOG_TAG = "MyStocksActivity";
 
     public static final String ACTION_DATA_UPDATED =
             "com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED";
     boolean isSaved = true;
+
+    public  final String TAG = "tag";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
 
-
+        Log.e(LOG_TAG,"onCreate");
         ConnectivityManager cm =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -91,7 +92,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         View emptyView = findViewById(R.id.recyclerview_stock_empty);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
-        if (savedInstanceState == null&& isSaved) {
+        if (savedInstanceState == null) {
             Log.e("savedInstanceState", "= null");
             // Run the initialize task service so that some stocks appear upon an empty database
             isSaved = false;
@@ -126,50 +127,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             public void onClick(View v) {
                 if (isConnected) {
 
-                    new MaterialDialog.Builder(mContext).title(R.string.symbol_search)
-                            .content(R.string.content_test)
-                            .inputType(InputType.TYPE_CLASS_TEXT)
-                            .input(R.string.input_hint, R.string.input_prefill, new MaterialDialog.InputCallback() {
-                                @Override
-                                public void onInput(MaterialDialog dialog, CharSequence input) {
-                                    // On FAB click, receive user input. Make sure the stock doesn't already exist
-                                    // in the DB and proceed accordingly
-                                    Cursor c = getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
-                                            new String[]{QuoteColumns.SYMBOL}, QuoteColumns.SYMBOL + "= ?",
-                                            new String[]{input.toString()}, null);
-                                    if (c.getCount() != 0) {
-                                        Toast toast =
-                                                Toast.makeText(MyStocksActivity.this, R.string.saved_stock,
-                                                        Toast.LENGTH_LONG);
-                                        toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-                                        toast.show();
-                                        return;
-                                    }
-                                    if (input.equals("")) {
-                                        Toast toast =
-                                                Toast.makeText(MyStocksActivity.this,  R.string.input_value,
-                                                        Toast.LENGTH_LONG);
-                                        toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-                                        toast.show();
-                                        return;
-                                    } else {
-                                        // Add the stock to DB
-                                        try {
-                                            mServiceIntent.putExtra(TAG, "add");
-                                            mServiceIntent.putExtra("symbol", input.toString());
-                                            startService(mServiceIntent);
-                                        } catch (Exception e) {
-                                            Toast toast =
-                                                    Toast.makeText(MyStocksActivity.this,  R.string.non_existent_stock,
-                                                            Toast.LENGTH_LONG);
-                                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-                                            toast.show();
-                                        }
+                    startDialog();
 
-                                    }
-                                }
-                            })
-                            .show();
                 } else {
                     networkToast();
                 }
@@ -204,6 +163,53 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         }
     }
 
+    private void startDialog() {
+        new MaterialDialog.Builder(mContext).title(R.string.symbol_search)
+                .content(R.string.content_test)
+                .inputType(InputType.TYPE_CLASS_TEXT)
+                .input(R.string.input_hint, R.string.input_prefill, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                        // On FAB click, receive user input. Make sure the stock doesn't already exist
+                        // in the DB and proceed accordingly
+                        Cursor c = getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
+                                new String[]{QuoteColumns.SYMBOL}, QuoteColumns.SYMBOL + "= ?",
+                                new String[]{input.toString()}, null);
+                        if (c.getCount() != 0) {
+                            Toast toast =
+                                    Toast.makeText(MyStocksActivity.this, R.string.saved_stock,
+                                            Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                            toast.show();
+                            return;
+                        }
+                        if (input.length() <= 0) {
+                            Toast toast =
+                                    Toast.makeText(MyStocksActivity.this,  R.string.input_value,
+                                            Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                            toast.show();
+                            return;
+                        } else {
+                            // Add the stock to DB
+                            try {
+                                mServiceIntent.putExtra(TAG, "add");
+                                mServiceIntent.putExtra("symbol", input.toString());
+                                startService(mServiceIntent);
+                            } catch (Exception e) {
+                                Toast toast =
+                                        Toast.makeText(MyStocksActivity.this,  R.string.non_existent_stock,
+                                                Toast.LENGTH_LONG);
+                                toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                                toast.show();
+                            }
+
+                        }
+                    }
+                })
+                .show();
+    }
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -218,8 +224,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     @Override
     public void onResume() {
         super.onResume();
-        Log.e("onResume", "= null");
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+        Log.e(LOG_TAG,"onResume");
     }
 
     public void networkToast() {
@@ -304,6 +310,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mCursorAdapter.swapCursor(data);
         mCursor = data;
+
     }
 
     @Override
@@ -316,5 +323,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
                 .setPackage(context.getPackageName());
         context.sendBroadcast(dataUpdatedIntent);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e(LOG_TAG,"onPause");
     }
 }

@@ -126,13 +126,12 @@ public class StockTaskService extends GcmTaskService{
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
                 null, null);
 
-          }
 
+          }
          // see if the value that the user search for is Available
-          if(Utils.isStockThere(getResponse)){
-              mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
-                      Utils.quoteJsonToContentVals(getResponse));
-          }else{
+          if(Utils.isStockThere(getResponse)) mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
+                      Utils.quoteJsonToContentVals(getResponse, mContext));
+          else{
             Log.e(LOG_TAG, "This stock does not existent!");
 
           }

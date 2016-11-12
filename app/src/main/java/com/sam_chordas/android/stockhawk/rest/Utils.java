@@ -1,6 +1,8 @@
 package com.sam_chordas.android.stockhawk.rest;
 
 import android.content.ContentProviderOperation;
+import android.content.Context;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.Toast;
@@ -23,7 +25,7 @@ public class Utils {
 
     public static boolean showPercent = true;
 
-    public static ArrayList quoteJsonToContentVals(String JSON) {
+    public static ArrayList quoteJsonToContentVals(String JSON, Context mContext) {
         ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>();
         JSONObject jsonObject = null;
         JSONArray resultsArray = null;
@@ -36,7 +38,7 @@ public class Utils {
                     jsonObject = jsonObject.getJSONObject("results")
                             .getJSONObject("quote");
 
-                    batchOperations.add(buildBatchOperation(jsonObject));
+                    batchOperations.add(buildBatchOperation(jsonObject,mContext));
                     Log.e("batchOperations", jsonObject.toString());
                 } else {
                     resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
@@ -44,7 +46,7 @@ public class Utils {
                     if (resultsArray != null && resultsArray.length() != 0) {
                         for (int i = 0; i < resultsArray.length(); i++) {
                             jsonObject = resultsArray.getJSONObject(i);
-                            batchOperations.add(buildBatchOperation(jsonObject));
+                            batchOperations.add(buildBatchOperation(jsonObject, mContext));
                         }
                     }
                 }
@@ -71,18 +73,19 @@ public class Utils {
         }
         change = change.substring(1, change.length());
 
-            try {
-                double round = (double) Math.round(Double.parseDouble(change) * 100) / 100;
-                change = String.format("%.2f", round);
-                StringBuffer changeBuffer = new StringBuffer(change);
-                changeBuffer.insert(0, weight);
-                changeBuffer.append(ampersand);
-                change = changeBuffer.toString();
-                return change;
-            }catch (Exception e){
-                Log.e("Exception", e.toString());
+        try {
+            double round = (double) Math.round(Double.parseDouble(change) * 100) / 100;
+            change = String.format("%.2f", round);
+            StringBuffer changeBuffer = new StringBuffer(change);
+            changeBuffer.insert(0, weight);
+            changeBuffer.append(ampersand);
+            change = changeBuffer.toString();
+            return change;
+        } catch (Exception e) {
+            Log.e("Exception", e.toString());
 
-            }return "";
+        }
+        return "";
     }
 
     public static boolean isStockThere(String JSON) {
@@ -131,15 +134,23 @@ public class Utils {
         return true;
     }
 
-    public static ContentProviderOperation buildBatchOperation(JSONObject jsonObject) throws JSONException {
+    public static ContentProviderOperation buildBatchOperation(JSONObject jsonObject, Context mContext) throws JSONException {
         ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(
                 QuoteProvider.Quotes.CONTENT_URI);
 
+
+
         try {
 
+            Time dayTime = new Time();
+            dayTime.setToNow();
+            int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
+            dayTime = new Time();
+            long dateTime = dayTime.setJulianDay(julianStartDay);
 
             String change = jsonObject.getString("Change");
             builder.withValue(QuoteColumns.SYMBOL, jsonObject.getString("symbol"));
+            builder.withValue(QuoteColumns.CREATED, dateTime);
             builder.withValue(QuoteColumns.BIDPRICE, truncateBidPrice(jsonObject.getString("Bid")));
             builder.withValue(QuoteColumns.PERCENT_CHANGE, truncateChange(
                     jsonObject.getString("ChangeinPercent"), true));
@@ -151,6 +162,9 @@ public class Utils {
                 builder.withValue(QuoteColumns.ISUP, 1);
             }
 
+            // delete old data so we don't build up an endless history
+            mContext.getContentResolver().delete(QuoteProvider.Quotes.CONTENT_URI ,
+                    QuoteColumns.CREATED + " <= ?",new String[] {Long.toString(dayTime.setJulianDay(julianStartDay-7))});
         } catch (JSONException e) {
             e.printStackTrace();
         }

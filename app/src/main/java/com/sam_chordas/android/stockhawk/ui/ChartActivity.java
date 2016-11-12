@@ -7,6 +7,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -29,14 +30,11 @@ import java.util.Collections;
  */
 public class ChartActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-
 
     private static final int CURSOR_LOADER_ID = 1;
-
+    private Cursor mCursor;
     public final String SELECTED_STOCK = "selected_stock";
+    public final String LOG_TAG = "ChartActivity";
     String searchKey;
     LineChartView lineChartView;
     private LineSet mLineSet;
@@ -46,24 +44,33 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_line_graph);
-        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
-
+        Log.e(LOG_TAG, "onCreate");
         mLineSet = new LineSet();
         lineChartView = (LineChartView) findViewById(R.id.line_chart);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
+        Log.e(SELECTED_STOCK + "start", searchKey + " :)");
         if (bundle != null) {
             searchKey = (String) bundle.get(SELECTED_STOCK);
-            Log.e(SELECTED_STOCK, searchKey + " :)");
+            Log.e(SELECTED_STOCK + "1", searchKey + " :)");
         }
+        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.e(LOG_TAG, "onResume");
+        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e(LOG_TAG, "onPause");
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -81,12 +88,13 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        }else if(id == R.id.home){
-            onBackPressed();
-            finish();
+        } else if (id == R.id.home) {
+
+            Intent intent = NavUtils.getParentActivityIntent(this);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            NavUtils.navigateUpTo(this, intent);
             return true;
         }
-
 
         return super.onOptionsItemSelected(item);
     }
@@ -94,7 +102,9 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.e(SELECTED_STOCK + "loader1", searchKey + " :)");
         if (searchKey != null) {
+            Log.e(SELECTED_STOCK + "loader2", searchKey + " :)");
             return new CursorLoader(this, QuoteProvider.Quotes.CONTENT_URI,
                     new String[]{QuoteColumns.BIDPRICE, QuoteColumns.CHANGE},
                     QuoteColumns.SYMBOL + " = ?",
@@ -109,23 +119,24 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        findRange(data);
-        initLineChart();
+        Log.e(SELECTED_STOCK + "loader3", searchKey + " :)");
+        if (data != null) {
+            mCursor = data;
+            findRange(mCursor);
+            initLineChart();
+            mCursor.moveToFirst();
 
-        data.moveToFirst();
-
-        for (int i = 0; i < data.getCount(); i++) {
-            float value = Float.parseFloat(data.getString(data.getColumnIndex(QuoteColumns.BIDPRICE)));
-            mLineSet.addPoint(" " + i, value);
-            data.moveToNext();
+            for (int i = 0; i < mCursor.getCount(); i++) {
+                float value = Float.parseFloat(mCursor.getString(mCursor.getColumnIndex(QuoteColumns.BIDPRICE)));
+                mLineSet.addPoint(" " + i, value);
+                mCursor.moveToNext();
+            }
+            mLineSet.setColor(getResources().getColor(R.color.colorGray))
+                    .setDotsStrokeThickness(Tools.fromDpToPx(2))
+                    .setDotsStrokeColor(getResources().getColor(R.color.colorLightBlue));
+            lineChartView.addData(mLineSet);
+            lineChartView.show();
         }
-        data.close();
-        mLineSet.setColor(getResources().getColor(R.color.colorGray))
-                .setDotsStrokeThickness(Tools.fromDpToPx(2))
-                .setDotsStrokeColor(getResources().getColor(R.color.colorLightBlue));
-        lineChartView.addData(mLineSet);
-        lineChartView.show();
-
 
     }
 
@@ -141,7 +152,7 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
         gridPaint.setAntiAlias(true);
         gridPaint.setStrokeWidth(Tools.fromDpToPx(1f));
         lineChartView.setBorderSpacing(1)
-                .setAxisBorderValues(minRange -1 , maxRange +1 , 1)
+                .setAxisBorderValues(minRange - 1, maxRange + 1, 1)
                 .setXLabels(AxisController.LabelPosition.OUTSIDE)
                 .setYLabels(AxisController.LabelPosition.OUTSIDE)
                 .setLabelsColor(getResources().getColor(R.color.colorLightBlue))
@@ -159,6 +170,7 @@ public class ChartActivity extends AppCompatActivity implements LoaderManager.Lo
         }
         maxRange = Math.round(Collections.max(mArrayList));
         minRange = Math.round(Collections.min(mArrayList));
+
 
     }
 
