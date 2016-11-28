@@ -16,7 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="left|center_vertical"
-        android:paddingRight="@dimen/text_view_padding"
+        android:paddingStart="@dimen/text_view_padding"
         android:paddingEnd="@dimen/text_view_padding"
         tools:text="@string/stock_symbol" />
     <LinearLayout
